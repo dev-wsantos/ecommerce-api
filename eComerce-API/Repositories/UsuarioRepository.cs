@@ -5,34 +5,52 @@ namespace eComerce_API.Repositories
     public class UsuarioRepository : IUsuarioRepository
     {
         // Simulando o banco de dados
-        private List<Usuario> _db = new List<Usuario>()
+        private static List<Usuario> _db = new List<Usuario>()
         {
-            new Usuario(){ Id = 1, Email = "fulano.sicrano@gmail.com", Nome = "Fulano Sicrano"}
+            new Usuario(){ Id = 1, Email = "alana.stella.cavalcanti@archosolutions.com.br", Nome = "Alana Stella Cavalcanti"}, 
+            new Usuario(){ Id = 2, Email = "mateus.calebe.caldeira@univap.br", Nome = "Mateus Calebe Caldeira" },
+            new Usuario(){ Id = 3, Email = "filipe.ian.fernandes@iaru.com.br", Nome = "Filipe Ian Fernandes"},
+            new Usuario(){ Id = 4, Email = "stefany_nina_dapaz@iclaud.com", Nome = "Stefany Nina Tânia da Paz"}, 
+            new Usuario(){ Id = 5, Email = "gael-damota87@andrelam.com.br", Nome = "Gael Alexandre da Mota"}
         };
 
         public void Atualizar(Usuario usuario)
         {
-            throw new NotImplementedException();
+            _db.Remove(_db.FirstOrDefault(a => a.Id == usuario.Id));
+            _db.Add(usuario);
+
         }
 
         public void Deletar(int id)
         {
-            throw new NotImplementedException();
+            _db.Remove(_db.FirstOrDefault(a => a.Id == id));
         }
 
         public void Inserir(Usuario usuario)
         {
-            throw new NotImplementedException();
+            var ultimoUsuario = _db.LastOrDefault();
+
+            if (usuario == null)
+            {
+                usuario.Id = 1;
+            }
+            else
+            {
+                usuario.Id = ultimoUsuario.Id;
+                usuario.Id++;
+            }
+
+            _db.Add(usuario);
         }
 
-        public List<Usuario> Pesquisar()
+        public List<Usuario> Listar()
         {
-            throw new NotImplementedException();
+            return _db;
         }
 
         public Usuario Pesquisar(int id)
         {
-            throw new NotImplementedException();
+            return _db.FirstOrDefault(p => p.Id == id);
         }
     }
 }

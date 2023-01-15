@@ -4,7 +4,7 @@ namespace eComerce_API.Repositories
 {
     interface IUsuarioRepository
     {
-        public List<Usuario> Pesquisar();
+        public List<Usuario> Listar();
         public Usuario Pesquisar(int id);
         public void Inserir(Usuario usuario);
         public void Atualizar(Usuario usuario);
