@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using System.Text;
 using System.Security.Cryptography;
 using System.Reflection.PortableExecutable;
+using Microsoft.AspNetCore.Mvc.Formatters;
 
 namespace eComerce_API.Repositories
 {
@@ -21,31 +22,110 @@ namespace eComerce_API.Repositories
 
         public void Atualizar(Usuario usuario)
         {
-            _db.Remove(_db.FirstOrDefault(a => a.Id == usuario.Id));
-            _db.Add(usuario);
+            try
+            {
+                StringBuilder sql = new StringBuilder();
+                sql.AppendLine(@"UPDATE Usuarios 
+                                        SET Nome = @Nome, 
+                                            Email = @Email, 
+                                            Sexo = @Sexo, 
+                                            Rg = @Rg, 
+                                            Cpf = @Cpf, 
+                                            NomeMae = @NomeMae, 
+                                            SituacaoCadastro = @SituacaoCadastro, 
+                                            DataCadastro = @DataCadastro
+                                        WHERE Id = @Id");
+                using (_connection)
+                {
+                    SqlCommand cmd = new SqlCommand();
+                    cmd.CommandText = sql.ToString();
+                    cmd.Connection = (SqlConnection)_connection;
+
+                    cmd.Parameters.AddWithValue("@Nome", usuario.Nome);
+                    cmd.Parameters.AddWithValue("@Email", usuario.Email);
+                    cmd.Parameters.AddWithValue("@Sexo", usuario.Sexo);
+                    cmd.Parameters.AddWithValue("@Rg", usuario.Rg);
+                    cmd.Parameters.AddWithValue("@Cpf", usuario.Cpf);
+                    cmd.Parameters.AddWithValue("@NomeMae", usuario.NomeMae);
+                    cmd.Parameters.AddWithValue("@SituacaoCadastro", usuario.SituacaoCadastro);
+                    cmd.Parameters.AddWithValue("@DataCadastro", usuario.DataCadastro);
+
+                    cmd.Parameters.AddWithValue("@Id", usuario.Id);
+                    
+                    _connection.Open(); 
+                    cmd.ExecuteNonQuery();
+                }
+
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception(ex.Message);
+            }
 
         }
 
         public void Deletar(int id)
         {
-            _db.Remove(_db.FirstOrDefault(a => a.Id == id));
+            try
+            {
+                using (_connection)
+                {
+                    StringBuilder sql = new StringBuilder();
+                    sql.Append("DELETE FROM Usuarios WHERE Id = @Id;");
+
+                    SqlCommand cmd = new SqlCommand();
+                    cmd.CommandText = sql.ToString();
+                    cmd.Connection = (SqlConnection)_connection;
+
+                    cmd.Parameters.AddWithValue("@Id", id);
+
+                    _connection.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception(ex.Message);
+            }
         }
 
         public void Inserir(Usuario usuario)
         {
-            var ultimoUsuario = _db.LastOrDefault();
-
-            if (usuario == null)
+            try
             {
-                usuario.Id = 1;
-            }
-            else
-            {
-                usuario.Id = ultimoUsuario.Id;
-                usuario.Id++;
-            }
+                using (_connection)
+                {
+                    _connection.Open();
 
-            _db.Add(usuario);
+                    StringBuilder sql = new StringBuilder();
+                    sql.AppendLine(@"INSERT INTO Usuarios (Nome, Email, Sexo, Rg, Cpf, NomeMae, SituacaoCadastro, DataCadastro) 
+                                        VALUES (@Nome, @Email, @Sexo, @Rg, @Cpf, @NomeMae, @SituacaoCadastro, @DataCadastro);
+                                        SELECT CAST(scope_identity() AS int) ");
+
+                    SqlCommand cmd = new SqlCommand();
+                    cmd.CommandText = sql.ToString();
+                    cmd.Connection = (SqlConnection)_connection;
+
+                    cmd.Parameters.AddWithValue("@Nome", usuario.Nome);
+                    cmd.Parameters.AddWithValue("@Email", usuario.Email);
+                    cmd.Parameters.AddWithValue("@Sexo", usuario.Sexo);
+                    cmd.Parameters.AddWithValue("@Rg", usuario.Rg);
+                    cmd.Parameters.AddWithValue("@Cpf", usuario.Cpf);
+                    cmd.Parameters.AddWithValue("@NomeMae", usuario.NomeMae);
+                    cmd.Parameters.AddWithValue("@SituacaoCadastro", usuario.SituacaoCadastro);
+                    cmd.Parameters.AddWithValue("@DataCadastro", usuario.DataCadastro);
+
+                    usuario.Id = (int)cmd.ExecuteScalar();
+                }
+                
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception(ex.Message);
+            }
         }
 
         public List<Usuario> Listar()
@@ -94,10 +174,10 @@ namespace eComerce_API.Repositories
                         usuarios.Add(usuario);
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
 
-                    throw;
+                    throw new Exception(ex.Message);
                 }
                 
             }
@@ -121,39 +201,44 @@ namespace eComerce_API.Repositories
                             FROM Usuarios
                             WHERE Id = @Id;");
 
-
             using (_connection)
             {
-
-                SqlCommand cmd = new SqlCommand();
-                cmd.CommandText = sql.ToString();
-                cmd.Parameters.AddWithValue("@Id", id);
-                cmd.Connection = (SqlConnection)_connection;
-                
-                _connection.Open();
-                SqlDataReader dataReader = cmd.ExecuteReader();
-
-                while(dataReader.Read())
+                try
                 {
-                    Usuario usuario = new Usuario();
+                    SqlCommand cmd = new SqlCommand();
+                    cmd.CommandText = sql.ToString();
+                    cmd.Parameters.AddWithValue("@Id", id);
+                    cmd.Connection = (SqlConnection)_connection;
 
-                    usuario.Id = Convert.ToInt32(dataReader["Id"]);
-                    usuario.Nome = dataReader.GetString("Nome");
-                    usuario.Email = dataReader.GetString("Email");
-                    usuario.Sexo = dataReader.GetString("Sexo");
-                    usuario.Rg = dataReader.GetString("RG");
-                    usuario.Cpf = dataReader.GetString("CPF");
-                    usuario.NomeMae = dataReader.GetString("NomeMae");
-                    usuario.SituacaoCadastro = dataReader.GetString("SituacaoCadastro");
-                    usuario.DataCadastro = dataReader.GetDateTimeOffset(8);
+                    _connection.Open();
+                    SqlDataReader dataReader = cmd.ExecuteReader();
 
-                    return usuario;
+                    while (dataReader.Read())
+                    {
+                        Usuario usuario = new Usuario();
+
+                        usuario.Id = Convert.ToInt32(dataReader["Id"]);
+                        usuario.Nome = dataReader.GetString("Nome");
+                        usuario.Email = dataReader.GetString("Email");
+                        usuario.Sexo = dataReader.GetString("Sexo");
+                        usuario.Rg = dataReader.GetString("RG");
+                        usuario.Cpf = dataReader.GetString("CPF");
+                        usuario.NomeMae = dataReader.GetString("NomeMae");
+                        usuario.SituacaoCadastro = dataReader.GetString("SituacaoCadastro");
+                        usuario.DataCadastro = dataReader.GetDateTimeOffset(8);
+
+                        return usuario;
+                    }
                 }
+                catch (Exception ex)
+                {
+
+                    throw new Exception(ex.Message);
+                }
+
             }
 
             return null;
-
-
         }
 
         private static List<Usuario> _db = new List<Usuario>()
