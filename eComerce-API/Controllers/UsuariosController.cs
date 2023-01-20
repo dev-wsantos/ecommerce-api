@@ -11,9 +11,12 @@ namespace eComerce_API.Controllers
     {
         private UsuarioRepository _usuarioRepository;
 
-        public UsuariosController()
+        private readonly IConfiguration Configuration;
+
+
+        public UsuariosController(IConfiguration configuration)
         {
-            _usuarioRepository = new UsuarioRepository();
+            _usuarioRepository = new UsuarioRepository(configuration);
         }
 
         /**
