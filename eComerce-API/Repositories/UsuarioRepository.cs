@@ -189,17 +189,23 @@ namespace eComerce_API.Repositories
         public Usuario Pesquisar(int id)
         {
             StringBuilder sql = new StringBuilder();
-            sql.Append(@$"SELECT Id, 
-                                Nome, 
-                                Email, 
-                                Sexo, 
-                                RG, 
-                                CPF, 
-                                NomeMae, 
-                                SituacaoCadastro, 
-                                DataCadastro 
-                            FROM Usuarios
-                            WHERE Id = @Id;");
+            sql.Append(@$"SELECT u.Id, 
+                                 u.Nome, 
+                                 u.Email, 
+                                 u.Sexo, 
+                                 u.RG, 
+                                 u.CPF, 
+                                 u.NomeMae, 
+                                 u.SituacaoCadastro, 
+                                 u.DataCadastro,
+                                 c.Id AS contatoId,
+                                 c.Telefone,
+                                 c.Celular,
+                                 c.UsuarioId AS usuarioId
+                            FROM Usuarios u
+                            LEFT JOIN Contatos c
+                            ON c.usuarioId = u.id
+                            WHERE u.Id = @Id;");
 
             using (_connection)
             {
@@ -217,7 +223,7 @@ namespace eComerce_API.Repositories
                     {
                         Usuario usuario = new Usuario();
 
-                        usuario.Id = Convert.ToInt32(dataReader["Id"]);
+                        usuario.Id = dataReader.GetInt32(0);
                         usuario.Nome = dataReader.GetString("Nome");
                         usuario.Email = dataReader.GetString("Email");
                         usuario.Sexo = dataReader.GetString("Sexo");
@@ -226,6 +232,14 @@ namespace eComerce_API.Repositories
                         usuario.NomeMae = dataReader.GetString("NomeMae");
                         usuario.SituacaoCadastro = dataReader.GetString("SituacaoCadastro");
                         usuario.DataCadastro = dataReader.GetDateTimeOffset(8);
+
+                        Contato contato = new Contato();
+                        contato.Id = dataReader.GetInt32("contatoId");
+                        contato.Telefone = dataReader.GetString("Telefone");
+                        contato.Celular = dataReader.GetString("Celular");
+                        contato.UsuarioId = usuario.Id;
+
+                        usuario.Contato = contato;
 
                         return usuario;
                     }
