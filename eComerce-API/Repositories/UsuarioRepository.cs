@@ -100,9 +100,27 @@ namespace eComerce_API.Repositories
                     _connection.Open();
 
                     StringBuilder sql = new StringBuilder();
-                    sql.AppendLine(@"INSERT INTO Usuarios (Nome, Email, Sexo, Rg, Cpf, NomeMae, SituacaoCadastro, DataCadastro) 
-                                        VALUES (@Nome, @Email, @Sexo, @Rg, @Cpf, @NomeMae, @SituacaoCadastro, @DataCadastro);
-                                        SELECT CAST(scope_identity() AS int) ");
+                    sql.AppendLine(@"INSERT INTO Usuarios 
+                                            (Nome, 
+                                             Email, 
+                                             Sexo, 
+                                             Rg, 
+                                             Cpf, 
+                                             NomeMae, 
+                                             SituacaoCadastro, 
+                                             DataCadastro
+                                             ) 
+                                             VALUES 
+                                             (@Nome, 
+                                              @Email, 
+                                              @Sexo, 
+                                              @Rg, 
+                                              @Cpf, 
+                                              @NomeMae, 
+                                              @SituacaoCadastro, 
+                                              @DataCadastro);
+                                              SELECT CAST(scope_identity() AS int
+                                              )");
 
                     SqlCommand cmd = new SqlCommand();
                     cmd.CommandText = sql.ToString();
@@ -118,6 +136,34 @@ namespace eComerce_API.Repositories
                     cmd.Parameters.AddWithValue("@DataCadastro", usuario.DataCadastro);
 
                     usuario.Id = (int)cmd.ExecuteScalar();
+
+                    sql.Clear();
+                    sql.AppendLine(@"INSERT INTO Contatos 
+                                    (usuarioId, 
+                                     Telefone, 
+                                     Celular
+                                    )
+                                    VALUES 
+                                    (@usuarioId, 
+                                     @Telefone, 
+                                     @Celular
+                                    ); 
+                                    SELECT 
+                                    CAST
+                                    (
+                                      scope_identity() AS int
+                                    );"
+                                   );
+
+                    cmd.CommandText = sql.ToString();
+                    cmd.Parameters.AddWithValue("@usuarioId", usuario.Id);
+                    cmd.Parameters.AddWithValue("@Telefone", usuario.Contato.Telefone);
+                    cmd.Parameters.AddWithValue("@Celular", usuario.Contato.Celular);
+
+                    usuario.Contato.UsuarioId = usuario.Id;
+                    usuario.Contato.Id = (int)cmd.ExecuteScalar();
+                    
+                    cmd.ExecuteNonQuery();  
                 }
             }
             catch (Exception ex)
