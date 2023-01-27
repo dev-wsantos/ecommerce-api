@@ -13,11 +13,11 @@ namespace eComerce_API.Repositories
     public class UsuarioRepository : IUsuarioRepository
     {
         private IDbConnection _connection;
-      
-     
+
+
         public UsuarioRepository(IConfiguration configuration)
         {
-            _connection = new SqlConnection(configuration["ConnectionStrings:DefaultConnection"]);       
+            _connection = new SqlConnection(configuration["ConnectionStrings:DefaultConnection"]);
         }
 
         public void Atualizar(Usuario usuario)
@@ -51,8 +51,8 @@ namespace eComerce_API.Repositories
                     cmd.Parameters.AddWithValue("@DataCadastro", usuario.DataCadastro);
 
                     cmd.Parameters.AddWithValue("@Id", usuario.Id);
-                    
-                    _connection.Open(); 
+
+                    _connection.Open();
                     cmd.ExecuteNonQuery();
                 }
 
@@ -119,7 +119,6 @@ namespace eComerce_API.Repositories
 
                     usuario.Id = (int)cmd.ExecuteScalar();
                 }
-                
             }
             catch (Exception ex)
             {
@@ -133,7 +132,7 @@ namespace eComerce_API.Repositories
             List<Usuario> usuarios = new List<Usuario>();
 
             StringBuilder sql = new StringBuilder();
-           
+
             sql.Append(@"SELECT Id, 
                                 Nome, 
                                 Email, 
@@ -145,18 +144,18 @@ namespace eComerce_API.Repositories
                                 DataCadastro 
                             FROM Usuarios");
 
-            using(_connection)
+            using (_connection)
             {
                 try
                 {
                     _connection.Open();
-                    
+
                     SqlCommand cmd = new SqlCommand();
                     cmd.CommandText = sql.ToString();
                     cmd.Connection = (SqlConnection)_connection;
 
                     SqlDataReader reader = cmd.ExecuteReader();
-                    
+
                     while (reader.Read())
                     {
                         Usuario usuario = new Usuario();
@@ -179,9 +178,7 @@ namespace eComerce_API.Repositories
 
                     throw new Exception(ex.Message);
                 }
-                
             }
-           
 
             return usuarios;
         }
@@ -190,33 +187,42 @@ namespace eComerce_API.Repositories
         {
             StringBuilder sql = new StringBuilder();
             sql.Append(@$"SELECT u.Id,
-		                        u.Nome,
-		                        u.Email,
-		                        u.Sexo,
-		                        u.RG,
-		                        u.CPF,
-		                        u.NomeMae,
-		                        u.SituacaoCadastro,
-		                        u.DataCadastro,
-		                        c.Id,
-		                        c.Telefone,
-		                        c.Celular,
-		                        c.UsuarioId,
-		                        ee.Id,
-		                        ee.UsuarioId,
-		                        ee.NomeEndereco,
-		                        ee.CEP,
-		                        ee.Estado,
-		                        ee.Cidade,
-		                        ee.Bairro,
-		                        ee.Endereco,
-		                        ee.Numero,
-		                        ee.Complemento
+	                             u.Nome,
+	                             u.Email,
+	                             u.Sexo,
+	                             u.RG,
+	                             u.CPF,
+	                             u.NomeMae,
+	                             u.SituacaoCadastro,
+	                             u.DataCadastro,
+	                             c.Id,
+	                             c.Telefone,
+	                             c.Celular,
+	                             c.UsuarioId,
+	                             ee.Id,
+	                             ee.UsuarioId,
+	                             ee.NomeEndereco,
+	                             ee.CEP,
+	                             ee.Estado,
+	                             ee.Cidade,
+	                             ee.Bairro,
+	                             ee.Endereco,
+	                             ee.Numero,
+	                             ee.Complemento,
+	                             ud.Id,
+	                             ud.DepartamentoId,
+	                             ud.UsuarioId,
+	                             d.Id,
+	                             d.Nome
 	                        FROM Usuarios u
 	                        LEFT JOIN Contatos c
 	                        ON c.UsuarioId = u.Id
 	                        LEFT JOIN EnderecosEntrega ee
 	                        ON ee.UsuarioId = u.Id
+	                        LEFT JOIN UsuariosDepartamentos ud
+	                        ON ud.UsuarioId = u.Id
+	                        LEFT JOIN Departamentos d
+	                        ON d.Id = ud.DepartamentoId
                             WHERE u.Id = @Id;");
 
             using (_connection)
@@ -276,31 +282,35 @@ namespace eComerce_API.Repositories
                         enderecoEntrega.Complemento = dataReader.GetString("Complemento");
 
                         usuario.EnderecosEntrega = (usuario.EnderecosEntrega == null ? new List<EnderecoEntrega>() : usuario.EnderecosEntrega);
-                        usuario.EnderecosEntrega.Add(enderecoEntrega);
 
 
+                        if (usuario.EnderecosEntrega.FirstOrDefault(e => e.Id == enderecoEntrega.Id) == null)
+                        {
+                            usuario.EnderecosEntrega.Add(enderecoEntrega);
+                        }
+
+                        Departamento departamento = new Departamento();
+                        departamento.Id = dataReader.GetInt32(26);
+                        departamento.Nome = dataReader.GetString(27);
+
+                        usuario.Departamentos = (usuario.Departamentos == null) ? new List<Departamento>() : usuario.Departamentos;
+
+                        if (usuario.Departamentos.FirstOrDefault(d => d.Id == departamento.Id) == null)
+                        {
+                            usuario.Departamentos.Add(departamento);
+                        }
                     }
 
                     return usuarios[usuarios.Keys.First()];
                 }
+
                 catch (Exception ex)
                 {
+                    return null;
 
                     throw new Exception(ex.Message);
                 }
-
             }
-
-            return null;
         }
-
-        private static List<Usuario> _db = new List<Usuario>()
-        {
-            new Usuario(){ Id = 1, Email = "alana.stella.cavalcanti@archosolutions.com.br", Nome = "Alana Stella Cavalcanti"},
-            new Usuario(){ Id = 2, Email = "mateus.calebe.caldeira@univap.br", Nome = "Mateus Calebe Caldeira" },
-            new Usuario(){ Id = 3, Email = "filipe.ian.fernandes@iaru.com.br", Nome = "Filipe Ian Fernandes"},
-            new Usuario(){ Id = 4, Email = "stefany_nina_dapaz@iclaud.com", Nome = "Stefany Nina Tânia da Paz"},
-            new Usuario(){ Id = 5, Email = "gael-damota87@andrelam.com.br", Nome = "Gael Alexandre da Mota"}
-        };
     }
 }
