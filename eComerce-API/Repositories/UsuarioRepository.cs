@@ -162,7 +162,56 @@ namespace eComerce_API.Repositories
 
                     usuario.Contato.UsuarioId = usuario.Id;
                     usuario.Contato.Id = (int)cmd.ExecuteScalar();
+
+
+                    sql.Clear();
+
                     
+
+                    foreach(var endereco in usuario.EnderecosEntrega)
+                    {
+
+                        cmd = new SqlCommand();
+                        cmd.Connection = (SqlConnection)_connection;
+
+                        sql.Append(@"INSERT INTO EnderecosEntrega 
+                                             (UsuarioId, 
+                                              NomeEndereco, 
+                                              CEP,
+                                              Estado, 
+                                              Cidade, 
+                                              Bairro, 
+                                              Endereco, 
+                                              Numero, 
+                                              Complemento
+                                             )
+                                            VALUES (@UsuarioId, 
+                                                    @NomeEndereco, 
+                                                    @Cep, 
+                                                    @Estado, 
+                                                    @Cidade,
+                                                    @Bairro, 
+                                                    @Endereco, 
+                                                    @Numero, 
+                                                    @Complemento); SELECT CAST(scope_identity() as int)");
+                        
+                        cmd.CommandText = sql.ToString();
+                        
+
+                        cmd.Parameters.AddWithValue("@UsuarioId", usuario.Id);
+                        cmd.Parameters.AddWithValue("@NomeEndereco", endereco.NomeEndereco);
+                        cmd.Parameters.AddWithValue("@Cep", endereco.Cep);
+                        cmd.Parameters.AddWithValue("@Estado", endereco.Estado);
+                        cmd.Parameters.AddWithValue("@Cidade", endereco.Cidade);
+                        cmd.Parameters.AddWithValue("@Bairro", endereco.Bairro);
+                        cmd.Parameters.AddWithValue("@Endereco", endereco.Endereco);
+                        cmd.Parameters.AddWithValue("@Numero", endereco.Numero);
+                        cmd.Parameters.AddWithValue("@Complemento", endereco.Complemento);
+
+                        endereco.Id = (int)cmd.ExecuteScalar();
+                        endereco.UsuarioId = usuario.Id;
+                    }
+
                     cmd.ExecuteNonQuery();  
                 }
             }
