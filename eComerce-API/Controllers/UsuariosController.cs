@@ -59,9 +59,18 @@ namespace eComerce_API.Controllers
         [HttpPost]
         public IActionResult Insert([FromBody] Usuario usuario)
         {
-            _usuarioRepository.Inserir(usuario);
+            try
+            {
+                _usuarioRepository.Inserir(usuario);
+                return Ok(usuario);
 
-            return Ok(usuario);
+            }
+            catch (Exception e)
+            {
+
+                return StatusCode(500, e.Message);
+            }
+
         }
 
         [HttpPut]

@@ -94,11 +94,13 @@ namespace eComerce_API.Repositories
 
         public void Inserir(Usuario usuario)
         {
+            _connection.Open();
+            SqlTransaction transaction = (SqlTransaction) _connection.BeginTransaction();
             try
             {
                 using (_connection)
                 {
-                    _connection.Open();
+                    
 
                     StringBuilder sql = new StringBuilder();
                     sql.Append(@"INSERT INTO Usuarios 
@@ -124,8 +126,10 @@ namespace eComerce_API.Repositories
                                     )");
 
                     SqlCommand cmd = new SqlCommand();
-                    cmd.CommandText = sql.ToString();
+                    cmd.Transaction = transaction;
                     cmd.Connection = (SqlConnection)_connection;
+
+                    cmd.CommandText = sql.ToString();
 
                     cmd.Parameters.AddWithValue("@Nome", usuario.Nome);
                     cmd.Parameters.AddWithValue("@Email", usuario.Email);
@@ -174,6 +178,7 @@ namespace eComerce_API.Repositories
 
                         cmd = new SqlCommand();
                         cmd.Connection = (SqlConnection)_connection;
+                        cmd.Transaction = transaction;
 
                         sql.Append(@"INSERT INTO EnderecosEntrega 
                                     (UsuarioId, 
@@ -221,6 +226,7 @@ namespace eComerce_API.Repositories
                     {
                         cmd = new SqlCommand();
                         cmd.Connection = (SqlConnection)_connection;
+                        cmd.Transaction = transaction;
 
                         sql.Clear();
 
@@ -242,10 +248,21 @@ namespace eComerce_API.Repositories
                         cmd.ExecuteNonQuery();  
                     }
 
+                    transaction.Commit();
                 }
             }
             catch (Exception ex)
             {
+
+                try
+                {
+                    transaction.Rollback();
+                }
+                catch (Exception e)
+                {
+
+                    throw new Exception(e.Message);
+                }
 
                 throw new Exception(ex.Message);
             }
