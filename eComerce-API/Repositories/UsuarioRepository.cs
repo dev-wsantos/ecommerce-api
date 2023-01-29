@@ -22,6 +22,9 @@ namespace eComerce_API.Repositories
 
         public void Atualizar(Usuario usuario)
         {
+            _connection.Open();
+            SqlTransaction transaction = (SqlTransaction)_connection.BeginTransaction();
+
             try
             {
                 StringBuilder sql = new StringBuilder();
@@ -41,6 +44,7 @@ namespace eComerce_API.Repositories
                     SqlCommand cmd = new SqlCommand();
                     cmd.CommandText = sql.ToString();
                     cmd.Connection = (SqlConnection)_connection;
+                    cmd.Transaction = transaction;
 
                     cmd.Parameters.AddWithValue("@Nome", usuario.Nome);
                     cmd.Parameters.AddWithValue("@Email", usuario.Email);
@@ -53,13 +57,41 @@ namespace eComerce_API.Repositories
 
                     cmd.Parameters.AddWithValue("@Id", usuario.Id);
 
-                    _connection.Open();
                     cmd.ExecuteNonQuery();
+
+                    sql.Clear();
+
+                    sql.Append(@"UPDATE Contatos 
+                                 SET UsuarioId = @UsuarioId, 
+                                     Telefone  = @Telefone, 
+                                     Celular   = @Celular 
+                                 WHERE 
+                                    Id = @Id"
+                                );
+
+                    cmd.CommandText = sql.ToString();
+
+                    cmd.Parameters.AddWithValue("@UsuarioId", usuario.Id);
+                    cmd.Parameters.AddWithValue("@Telefone", usuario.Contato.Telefone);
+                    cmd.Parameters.AddWithValue("@Celular", usuario.Contato.Celular);
+
+                    cmd.ExecuteNonQuery();
+
+                    transaction.Commit();
                 }
 
             }
             catch (Exception ex)
             {
+                try
+                {
+                    transaction.Rollback();
+                }
+                catch (Exception e)
+                {
+                    // poderia ser aplicado o registro no log do sistema
+                    throw;
+                }
 
                 throw new Exception(ex.Message);
             }

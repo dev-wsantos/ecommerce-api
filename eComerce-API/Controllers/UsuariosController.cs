@@ -76,8 +76,16 @@ namespace eComerce_API.Controllers
         [HttpPut]
         public IActionResult Update([FromBody] Usuario usuario)
         {
-            _usuarioRepository.Atualizar(usuario);
-            return Ok(usuario);
+            try
+            {
+                _usuarioRepository.Atualizar(usuario);
+                return Ok(usuario);
+
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
         }
 
         [HttpDelete("{id}")]
