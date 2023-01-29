@@ -25,16 +25,17 @@ namespace eComerce_API.Repositories
             try
             {
                 StringBuilder sql = new StringBuilder();
-                sql.AppendLine(@"UPDATE Usuarios 
-                                        SET Nome = @Nome, 
-                                            Email = @Email, 
-                                            Sexo = @Sexo, 
-                                            Rg = @Rg, 
-                                            Cpf = @Cpf, 
-                                            NomeMae = @NomeMae, 
-                                            SituacaoCadastro = @SituacaoCadastro, 
-                                            DataCadastro = @DataCadastro
-                                        WHERE Id = @Id");
+                sql.Append(@"UPDATE Usuarios 
+                            SET Nome = @Nome, 
+                                Email = @Email, 
+                                Sexo = @Sexo, 
+                                Rg = @Rg, 
+                                Cpf = @Cpf, 
+                                NomeMae = @NomeMae, 
+                                SituacaoCadastro = @SituacaoCadastro, 
+                                DataCadastro = @DataCadastro
+                            WHERE Id = @Id");
+
                 using (_connection)
                 {
                     SqlCommand cmd = new SqlCommand();
@@ -100,27 +101,27 @@ namespace eComerce_API.Repositories
                     _connection.Open();
 
                     StringBuilder sql = new StringBuilder();
-                    sql.AppendLine(@"INSERT INTO Usuarios 
-                                            (Nome, 
-                                             Email, 
-                                             Sexo, 
-                                             Rg, 
-                                             Cpf, 
-                                             NomeMae, 
-                                             SituacaoCadastro, 
-                                             DataCadastro
-                                             ) 
-                                             VALUES 
-                                             (@Nome, 
-                                              @Email, 
-                                              @Sexo, 
-                                              @Rg, 
-                                              @Cpf, 
-                                              @NomeMae, 
-                                              @SituacaoCadastro, 
-                                              @DataCadastro);
-                                              SELECT CAST(scope_identity() AS int
-                                              )");
+                    sql.Append(@"INSERT INTO Usuarios 
+                                (Nome, 
+                                    Email, 
+                                    Sexo, 
+                                    Rg, 
+                                    Cpf, 
+                                    NomeMae, 
+                                    SituacaoCadastro, 
+                                    DataCadastro
+                                    ) 
+                                    VALUES 
+                                    (@Nome, 
+                                    @Email, 
+                                    @Sexo, 
+                                    @Rg, 
+                                    @Cpf, 
+                                    @NomeMae, 
+                                    @SituacaoCadastro, 
+                                    @DataCadastro);
+                                    SELECT CAST(scope_identity() AS int
+                                    )");
 
                     SqlCommand cmd = new SqlCommand();
                     cmd.CommandText = sql.ToString();
@@ -138,22 +139,22 @@ namespace eComerce_API.Repositories
                     usuario.Id = (int)cmd.ExecuteScalar();
 
                     sql.Clear();
-                    sql.AppendLine(@"INSERT INTO Contatos 
-                                    (usuarioId, 
-                                     Telefone, 
-                                     Celular
-                                    )
-                                    VALUES 
-                                    (@usuarioId, 
-                                     @Telefone, 
-                                     @Celular
-                                    ); 
-                                    SELECT 
-                                    CAST
-                                    (
-                                      scope_identity() AS int
-                                    );"
-                                   );
+                    sql.Append(@"INSERT INTO Contatos 
+                                (usuarioId, 
+                                    Telefone, 
+                                    Celular
+                                )
+                                VALUES 
+                                (@usuarioId, 
+                                    @Telefone, 
+                                    @Celular
+                                ); 
+                                SELECT 
+                                CAST
+                                (
+                                    scope_identity() AS int
+                                );"
+                                );
 
                     cmd.CommandText = sql.ToString();
                     cmd.Parameters.AddWithValue("@usuarioId", usuario.Id);
@@ -175,25 +176,28 @@ namespace eComerce_API.Repositories
                         cmd.Connection = (SqlConnection)_connection;
 
                         sql.Append(@"INSERT INTO EnderecosEntrega 
-                                             (UsuarioId, 
-                                              NomeEndereco, 
-                                              CEP,
-                                              Estado, 
-                                              Cidade, 
-                                              Bairro, 
-                                              Endereco, 
-                                              Numero, 
-                                              Complemento
-                                             )
-                                            VALUES (@UsuarioId, 
-                                                    @NomeEndereco, 
-                                                    @Cep, 
-                                                    @Estado, 
-                                                    @Cidade,
-                                                    @Bairro, 
-                                                    @Endereco, 
-                                                    @Numero, 
-                                                    @Complemento); SELECT CAST(scope_identity() as int)");
+                                    (UsuarioId, 
+                                    NomeEndereco, 
+                                    CEP,
+                                    Estado, 
+                                    Cidade, 
+                                    Bairro, 
+                                    Endereco, 
+                                    Numero, 
+                                    Complemento
+                                    )
+                                    VALUES 
+                                    (@UsuarioId, 
+                                     @NomeEndereco, 
+                                     @Cep, 
+                                     @Estado, 
+                                     @Cidade,
+                                     @Bairro, 
+                                     @Endereco, 
+                                     @Numero, 
+                                     @Complemento); 
+                                     SELECT CAST(scope_identity() as int)"
+                                    );
                         
                         cmd.CommandText = sql.ToString();
                         
@@ -212,7 +216,32 @@ namespace eComerce_API.Repositories
                         endereco.UsuarioId = usuario.Id;
                     }
 
-                    cmd.ExecuteNonQuery();  
+
+                    foreach(var departamento in usuario.Departamentos)
+                    {
+                        cmd = new SqlCommand();
+                        cmd.Connection = (SqlConnection)_connection;
+
+                        sql.Clear();
+
+                        sql.Append(@"INSERT INTO UsuariosDepartamentos
+                                            (UsuarioId, 
+                                             DepartamentoId
+                                            ) 
+                                            VALUES 
+                                            (@UsuarioId,
+                                             @DepartamentoId
+                                            );
+                                           ");
+
+                        cmd.CommandText = sql.ToString();
+
+                        cmd.Parameters.AddWithValue("@UsuarioId", usuario.Id);
+                        cmd.Parameters.AddWithValue("@DepartamentoId", departamento.Id);       
+                        
+                        cmd.ExecuteNonQuery();  
+                    }
+
                 }
             }
             catch (Exception ex)
