@@ -77,6 +77,48 @@ namespace eComerce_API.Repositories
 
                     cmd.ExecuteNonQuery();
 
+
+                    sql.Clear();
+
+
+                    
+
+
+                    foreach (var endereco in usuario.EnderecosEntrega)
+                    {
+                        cmd = new SqlCommand();
+                        cmd.Connection = (SqlConnection)_connection;
+                        cmd.Transaction = transaction;
+
+                        sql.Append(@"UPDATE EnderecosEntrega 
+                                         SET UsuarioId = @UsuarioId,
+                                             NomeEndereco = @NomeEndereco,
+                                             CEP          = @Cep,
+                                             Estado       = @Estado,
+                                             Cidade       = @Cidade,
+                                             Bairro       = @Bairro,
+                                             Endereco     = @Endereco,
+                                             Numero       = @Numero,
+                                             Complemento  = @Complemento 
+                                        WHERE Id         = @Id;"
+                                );
+
+                        cmd.CommandText = sql.ToString();
+                        cmd.Parameters.AddWithValue("@UsuarioId", usuario.Id);
+                        cmd.Parameters.AddWithValue("@NomeEndereco", endereco.NomeEndereco);
+                        cmd.Parameters.AddWithValue("@Cep", endereco.Cep);
+                        cmd.Parameters.AddWithValue("@Estado", endereco.Estado);
+                        cmd.Parameters.AddWithValue("@Cidade", endereco.Cidade);
+                        cmd.Parameters.AddWithValue("@Bairro", endereco.Bairro);
+                        cmd.Parameters.AddWithValue("@Endereco", endereco.Endereco);
+                        cmd.Parameters.AddWithValue("@Numero", endereco.Numero);
+                        cmd.Parameters.AddWithValue("@Complemento", endereco.Complemento);
+                        cmd.Parameters.AddWithValue("@Id", endereco.Id);
+
+                        cmd.ExecuteNonQuery();
+                    }
+                    
+
                     transaction.Commit();
                 }
 
