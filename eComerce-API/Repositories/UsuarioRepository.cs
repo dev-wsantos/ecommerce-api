@@ -25,6 +25,7 @@ namespace eComerce_API.Repositories
             _connection.Open();
             SqlTransaction transaction = (SqlTransaction)_connection.BeginTransaction();
 
+            #region Update Usuarios
             try
             {
                 StringBuilder sql = new StringBuilder();
@@ -58,7 +59,9 @@ namespace eComerce_API.Repositories
                     cmd.Parameters.AddWithValue("@Id", usuario.Id);
 
                     cmd.ExecuteNonQuery();
+                    #endregion
 
+                    #region Update Contatos
                     sql.Clear();
 
                     sql.Append(@"UPDATE Contatos 
@@ -77,12 +80,11 @@ namespace eComerce_API.Repositories
 
                     cmd.ExecuteNonQuery();
 
+                    #endregion
 
                     sql.Clear();
 
-
-                    
-
+                    #region Update Endereços de Entrega
 
                     foreach (var endereco in usuario.EnderecosEntrega)
                     {
@@ -117,10 +119,56 @@ namespace eComerce_API.Repositories
 
                         cmd.ExecuteNonQuery();
                     }
-                    
+
+                   
+                    #endregion
+
+                    sql.Clear();
+
+                    #region Update Departamentos
+                    cmd = new SqlCommand();
+                    cmd.Connection = (SqlConnection)_connection;
+                    cmd.Transaction = transaction;
+
+                    sql.Append(@"DELETE FROM UsuariosDepartamentos WHERE UsuarioId = @UsuarioId;");
+                    cmd.CommandText = sql.ToString();
+                    cmd.Parameters.AddWithValue("@UsuarioId", usuario.Id);
+                    cmd.ExecuteNonQuery();
+
+                   
+
+                    foreach (var departamento in usuario.Departamentos)
+                    {
+                        cmd = new SqlCommand();
+                        cmd.Connection = (SqlConnection)_connection;
+                        cmd.Transaction = transaction;
+
+                        sql.Clear();
+
+                        sql.Append(@"INSERT INTO UsuariosDepartamentos
+                                            (UsuarioId, 
+                                             DepartamentoId
+                                            ) 
+                                            VALUES 
+                                            (@UsuarioId,
+                                             @DepartamentoId
+                                            );
+                                           ");
+
+                        cmd.CommandText = sql.ToString();
+
+                        cmd.Parameters.AddWithValue("@UsuarioId", usuario.Id);
+                        cmd.Parameters.AddWithValue("@DepartamentoId", departamento.Id);
+
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    #endregion
 
                     transaction.Commit();
                 }
+
+                
 
             }
             catch (Exception ex)
@@ -174,8 +222,7 @@ namespace eComerce_API.Repositories
             {
                 using (_connection)
                 {
-                    
-
+                   
                     StringBuilder sql = new StringBuilder();
                     sql.Append(@"INSERT INTO Usuarios 
                                 (Nome, 
