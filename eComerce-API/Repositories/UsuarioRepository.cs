@@ -135,8 +135,6 @@ namespace eComerce_API.Repositories
                     cmd.Parameters.AddWithValue("@UsuarioId", usuario.Id);
                     cmd.ExecuteNonQuery();
 
-                   
-
                     foreach (var departamento in usuario.Departamentos)
                     {
                         cmd = new SqlCommand();
@@ -167,9 +165,6 @@ namespace eComerce_API.Repositories
 
                     transaction.Commit();
                 }
-
-                
-
             }
             catch (Exception ex)
             {
@@ -180,7 +175,7 @@ namespace eComerce_API.Repositories
                 catch (Exception e)
                 {
                     // poderia ser aplicado o registro no log do sistema
-                    throw;
+                    throw new Exception(e.Message);
                 }
 
                 throw new Exception(ex.Message);
