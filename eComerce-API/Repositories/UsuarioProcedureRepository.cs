@@ -22,8 +22,6 @@ namespace eComerce_API.Repositories
             command.Connection = (SqlConnection) _connection;
             command.CommandType = CommandType.StoredProcedure;
             command.CommandText = "SelecionarUsuarios";
-            
-            SqlDataReader dataReader = command.ExecuteReader();
 
              List<Usuario> usuarios = new List<Usuario>();
 
@@ -131,8 +129,6 @@ namespace eComerce_API.Repositories
                     command.Parameters.AddWithValue("@dataCadastro", usuario.DataCadastro);
 
                     usuario.Id = (int)command.ExecuteScalar();
-
-                    command.ExecuteNonQuery();
                 }
 
             } 
